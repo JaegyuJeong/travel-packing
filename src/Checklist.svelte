@@ -1,6 +1,7 @@
 <script>
     import {getGuid, sortOnName} from "./util";
     import Category from "./Category.svelte";
+    import {createEventDispatcher} from "svelte";
 
     let categoryArray = [];
     let categories = {};
@@ -8,7 +9,23 @@
     let message = '';
     let show = 'all';
 
+    const dispatch = createEventDispatcher()
+
     $: categoryArray = sortOnName(Object.values(categories))
+    restore();
+
+    $: if (categories) persist();
+
+    function persist() {
+        localStorage.setItem('travel-packing', JSON.stringify(categories))
+    }
+
+    function restore() {
+        const text = localStorage.getItem('travel-packing');
+        if(text && text !== '{}') {
+            categories = JSON.parse(text);
+        }
+    }
 
     function addCategory() {
         const duplicate = Object.values(categories).some(
@@ -34,16 +51,24 @@
         }
         categories = categories
     }
+
+    function deleteCategory(category) {
+        delete categories[category.id];
+        categories = categories
+    }
+
+
+
 </script>
 <section>
     <header>
-        <form on:submit|preventDefault ={addCategory}>
+        <form on:submit|preventDefault={addCategory}>
             <label>
                 New Category
                 <input bind:value={categoryName}>
             </label>
             <button disabled={!categoryName}>Add Category</button>
-            <button class="logout-btn">
+            <button class="logout-btn" on:click={()=> dispatch('logout')}>
                 Log Out
             </button>
         </form>
@@ -74,20 +99,20 @@
 
     <div class="categories">
         {#each categoryArray as category (category.id)}
-            <Category bind:category {categories} {show} />
+            <Category bind:category {categories} {show} on:delete={()=> deleteCategory(category)} on:persist={persist}/>
         {/each}
     </div>
 </section>
 
 
 <style>
-    .categories{
+    .categories {
         display: inline-block;
         flex-wrap: wrap;
         justify-content: center;
     }
 
-    .clear{
+    .clear {
         margin-left: 30px;
     }
 
@@ -104,7 +129,7 @@
         top: 20px;
     }
 
-    .radios{
+    .radios {
         display: flex;
         align-items: center;
     }
@@ -116,12 +141,12 @@
         margin-left: 1em;
     }
 
-    .radios > label > input{
+    .radios > label > input {
         margin-bottom: -3px;
         margin-right: 5px;
     }
 
-    section{
+    section {
         display: flex;
         flex-direction: column;
         align-items: center;

@@ -1,8 +1,9 @@
 <script>
   import { blurOnKey } from "./util";
-
+  import {createEventDispatcher} from 'svelte'
   export let item;
 
+  const dispatch = createEventDispatcher()
   let editing = false;
 </script>
 
@@ -21,7 +22,7 @@
       {item.name}
     </span>
   {/if}
-  <button class="icon">&#x1F5D1;</button>
+  <button class="icon" on:click={() => dispatch('delete')}>&#x1F5D1;</button>
 </li>
 
 <style>
