@@ -2,12 +2,33 @@
     import {getGuid, sortOnName} from "./util";
     import Category from "./Category.svelte";
     import {createEventDispatcher} from "svelte";
+    import Dialog from "./Dialog.svelte";
 
     let categoryArray = [];
     let categories = {};
     let categoryName;
     let message = '';
     let show = 'all';
+    let dialog = null;
+    let dragAndDrop = {
+        drag(event, categoryId, itemId) {
+            const data = {categoryId, itemId};
+            event.dataTransfer.setData('text/plain', JSON.stringify(data));
+        },
+        drop(event, categoryId) {
+            const json = event.dataTransfer.getData('text/plain');
+            const data = JSON.parse(json);
+
+            const category = categories[data.categoryId];
+            const item = category.items[data.itemId];
+
+            delete category.items[data.itemId];
+
+            categories[categoryId].items[data.itemId] = item;
+
+            categories = categories
+        }
+    }
 
     const dispatch = createEventDispatcher()
 
@@ -22,7 +43,7 @@
 
     function restore() {
         const text = localStorage.getItem('travel-packing');
-        if(text && text !== '{}') {
+        if (text && text !== '{}') {
             categories = JSON.parse(text);
         }
     }
@@ -33,7 +54,7 @@
         )
         if (duplicate) {
             message = `The category "${categoryName}" already exists.`;
-            alert(message);
+            dialog.showModal();
             return;
         }
 
@@ -53,10 +74,14 @@
     }
 
     function deleteCategory(category) {
+        if (Object.values(category.items).length) {
+            message = 'This category is not empty';
+            dialog.showModal();
+            return;
+        }
         delete categories[category.id];
         categories = categories
     }
-
 
 
 </script>
@@ -99,9 +124,13 @@
 
     <div class="categories">
         {#each categoryArray as category (category.id)}
-            <Category bind:category {categories} {show} on:delete={()=> deleteCategory(category)} on:persist={persist}/>
+            <Category dnd={dragAndDrop} bind:category {categories} {show} on:delete={()=> deleteCategory(category)}
+                      on:persist={persist}/>
         {/each}
     </div>
+    <Dialog title="Checklist" bind:dialog>
+        <div>{message}</div>
+    </Dialog>
 </section>
 
 

@@ -1,56 +1,61 @@
 <script>
-  import { blurOnKey } from "./util";
-  import {createEventDispatcher} from 'svelte'
-  export let item;
+    import {blurOnKey} from "./util";
+    import {createEventDispatcher} from 'svelte'
 
-  const dispatch = createEventDispatcher()
-  let editing = false;
+    export let item;
+    export let categoryId;
+    export let dnd;
+
+    const dispatch = createEventDispatcher()
+    let editing = false;
 </script>
 
 <li>
-  <input type="checkbox" bind:checked={item.packed} />
-  {#if editing}
-    <input
-      autofocus
-      bind:value={item.name}
-      on:blur={() => (editing = false)}
-      on:keydown={blurOnKey}
-      type="text"
-    />
-  {:else}
-    <span class="packed-{item.packed}" on:click={() => (editing = true)}>
+    <input type="checkbox" bind:checked={item.packed}/>
+    {#if editing}
+        <input
+                autofocus
+                bind:value={item.name}
+                on:blur={() => (editing = false)}
+                on:keydown={blurOnKey}
+                type="text"
+        />
+    {:else}
+    <span draggable="true" on:dragstart={event => dnd.drag(event, categoryId, item.id)} class="packed-{item.packed}"
+          on:click={() => (editing = true)}>
       {item.name}
     </span>
-  {/if}
-  <button class="icon" on:click={() => dispatch('delete')}>&#x1F5D1;</button>
+    {/if}
+    <button class="icon" on:click={() => dispatch('delete')}>&#x1F5D1;</button>
 </li>
 
 <style>
-  button {
-    background-color: transparent;
-    border: none;
-  }
-  input[type="checkbox"] {
-    --size: 24px;
-    height: var(--size);
-    width: var(--size);
-  }
+    button {
+        background-color: transparent;
+        border: none;
+    }
 
-  input[type="text"] {
-    border: solid lightgray 1px;
-  }
+    input[type="checkbox"] {
+        --size: 24px;
+        height: var(--size);
+        width: var(--size);
+    }
 
-  li {
-    display: flex;
-    align-items: center;
-  }
+    input[type="text"] {
+        border: solid lightgray 1px;
+    }
 
-  .packed-true {
-    color: gray;
-    text-decoration: line-through;
-  }
+    li {
+        display: flex;
+        align-items: center;
+    }
 
-  span {
-    margin: 0 10px;
-  }
+    .packed-true {
+        color: gray;
+        text-decoration: line-through;
+    }
+
+    span {
+        margin: 0 10px;
+    }
 </style>
